@@ -1,0 +1,202 @@
+[
+    {
+        "posicao":1,
+        "nome":"Flamengo",
+        "imagem":"",
+        "pts": 10,
+        "totalPartida":4,
+        "vitoria":3,
+        "derrota":0,
+        "empate":1
+    },
+    {
+        "posicao":2,
+        "nome":"Palmeiras",
+        "imagem":"",
+        "pts": 10,
+        "totalPartida":4,
+        "vitoria":3,
+        "derrota":0,
+        "empate":1
+    },
+    {
+        "posicao":3,
+        "nome":"Fluminense",
+        "imagem":"",
+        "pts": 9,
+        "totalPartida":4,
+        "vitoria":3,
+        "derrota":1,
+        "empate":0
+    },
+    {
+        "posicao":4,
+        "nome":"Ceara",
+        "imagem":"",
+        "pts": 7,
+        "totalPartida":4,
+        "vitoria":2,
+        "derrota":1,
+        "empate":1
+    },
+    {
+        "posicao":5,
+        "nome":"Cruzeiro",
+        "imagem":"",
+        "pts": 7,
+        "totalPartida":4,
+        "vitoria":2,
+        "derrota":1,
+        "empate":1
+    },
+    {
+        "posicao":6,
+        "nome":"Red Bull Bragantino",
+        "imagem":"",
+        "pts": 7,
+        "totalPartida":4,
+        "vitoria":2,
+        "derrota":1,
+        "empate":1
+    },
+    {
+        "posicao":7,
+        "nome":"Vasco da Gama",
+        "imagem":"",
+        "pts": 6,
+        "totalPartida":4,
+        "vitoria":2,
+        "derrota":2,
+        "empate":0
+    },
+    {
+        "posicao":8,
+        "nome":"Juventude RS",
+        "imagem":"",
+        "pts": 6,
+        "totalPartida":4,
+        "vitoria":2,
+        "derrota":2,
+        "empate":0
+    },
+    {
+        "posicao":9,
+        "nome":"Mirassol",
+        "imagem":"",
+        "pts": 5,
+        "totalPartida":4,
+        "vitoria":1,
+        "derrota":1,
+        "empate":2
+    },
+    {
+        "posicao":10,
+        "nome":"Internacional",
+        "imagem":"",
+        "pts": 5,
+        "totalPartida":4,
+        "vitoria":1,
+        "derrota":1,
+        "empate":2
+    },{
+        "posicao":11,
+        "nome":"Botafogo",
+        "imagem":"",
+        "pts": 5,
+        "totalPartida":4,
+        "vitoria":1,
+        "derrota":1,
+        "empate":2
+    },
+    {
+        "posicao":11,
+        "nome":"Fortaleza",
+        "imagem":"",
+        "pts": 5,
+        "totalPartida":4,
+        "vitoria":1,
+        "derrota":1,
+        "empate":2
+    },
+    {
+        "posicao":13,
+        "nome":"Santos",
+        "imagem":"",
+        "pts":4 ,
+        "totalPartida":4,
+        "vitoria":1,
+        "derrota":2,
+        "empate":1
+    },
+    {
+        "posicao":14,
+        "nome":"Corinthians",
+        "imagem":"",
+        "pts": 4,
+        "totalPartida":4,
+        "vitoria":1,
+        "derrota":2,
+        "empate":1
+    },
+    {
+        "posicao":15,
+        "nome":"Vitoria BA",
+        "imagem":"",
+        "pts": 4,
+        "totalPartida":4,
+        "vitoria":1,
+        "derrota":2,
+        "empate":1
+    },
+    {
+        "posicao":16,
+        "nome":"São Paulo",
+        "imagem":"",
+        "pts": 4,
+        "totalPartida":4,
+        "vitoria":0,
+        "derrota":0,
+        "empate":4
+    },
+    {
+        "posicao":17,
+        "nome":"Grêmio",
+        "imagem":"",
+        "pts": 3,
+        "totalPartida":4,
+        "vitoria":1,
+        "derrota":3,
+        "empate":0
+    },
+    {
+        "posicao":18,
+        "nome":"Bahia",
+        "imagem":"",
+        "pts": 3,
+        "totalPartida":4,
+        "vitoria":0,
+        "derrota":1,
+        "empate":3
+    },
+    {
+        "posicao":19,
+        "nome":"Atletico Mineiro",
+        "imagem":"",
+        "pts": 2,
+        "totalPartida":4,
+        "vitoria":0,
+        "derrota":2,
+        "empate":2
+    },
+    {
+        "posicao":20,
+        "nome":"Sport Recife",
+        "imagem":"",
+        "pts": 1,
+        "totalPartida":4,
+        "vitoria":0,
+        "derrota":3,
+        "empate":1
+    }
+
+]
