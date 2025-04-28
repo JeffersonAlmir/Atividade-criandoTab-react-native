@@ -56,7 +56,13 @@ export default function TabLayout() {
           title: 'Lista de times',
           tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={ color } />,
         }}
-        
+      />
+       <Tabs.Screen
+        name= 'footballGameList'
+        options={{
+          title: 'Partidas',
+          tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={ color } />,
+        }}
       />
     </Tabs>
     
