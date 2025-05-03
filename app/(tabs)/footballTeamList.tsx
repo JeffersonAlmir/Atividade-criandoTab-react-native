@@ -3,34 +3,61 @@ import FootballTeamsModal from "@/components/modals/FootballTeamsModal";
 import MyScrollView from "@/components/MyScrollView";
 import { ThemedView } from "@/components/ThemedView";
 import { IfootballTeams } from "@/interfaces/IfootballTeams";
+import { template } from "@babel/core";
 import { useState } from "react";
 import { Text, TouchableOpacity, StyleSheet, Pressable } from "react-native";
 
 export default function FootballTeamList (){
     const [footballTeam, setFootballTeam] = useState <IfootballTeams[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
+    const [selectTeam, setSelectTeam] = useState<IfootballTeams>();
+    
+    
+    const onAdd = (name: string, image:string, numberPlayer:string, id?: number)=>{
 
-    const onAdd = (name: string, image:string, numberPlayer:string)=>{
-        const newFootballTeam : IfootballTeams = {
-            id : Math.random() * 1000,
-            name: name,
-            image: image,
-            numberPlayers: numberPlayer
-        }
+       if(!id || id <= 0){
 
-        const footballTeamsPlus : IfootballTeams[] =[
-            ...footballTeam,
-            newFootballTeam
-        ]
+           const newFootballTeam : IfootballTeams = {
+               id : Math.random() * 1000,
+               name: name,
+               image: image,
+               numberPlayers: numberPlayer
+           };
+    
+           const footballTeamsPlus : IfootballTeams[] =[
+               ...footballTeam,
+               newFootballTeam
+           ];
+           
+           setFootballTeam(footballTeamsPlus);
+       } else{
+        footballTeam.forEach((team) =>{
+            if(team.id === id){
+                team.name = name;
+                team.image = image;
+                team.numberPlayers = numberPlayer;
+            }
+        } );
+       }
         
-
-        setFootballTeam(footballTeamsPlus);
         setModalVisible(false);
     };
 
+    const onDelete =(id:number) =>{
+        const newTeams = footballTeam.filter((team) => team.id != id);
+        setFootballTeam(newTeams)
+        setModalVisible(false);
+    }
+
     const openModal = ()=>{
+        setSelectTeam(undefined)
         setModalVisible(true);
     };
+    
+    const openModalEdit = (selectTeam: IfootballTeams) =>{
+        setSelectTeam(selectTeam)
+        setModalVisible(true);
+    }
 
     const closeModal = ()=>{
         setModalVisible(false);
@@ -38,22 +65,23 @@ export default function FootballTeamList (){
 
     return(
         <MyScrollView headerBackgroundColor={{light : "#A1CEDC",dark:'#1D3D47'}}>
-            <ThemedView style={styles.headerContainer}>
-                <TouchableOpacity onPress={() => openModal()}>
+            <TouchableOpacity onPress={() => openModal()}>
+                <ThemedView style={styles.headerContainer}>
                     <Text style={styles.headerButton}> + </Text>
-                </TouchableOpacity>
-            </ThemedView>
+                </ThemedView>
+            </TouchableOpacity>
             <ThemedView style={styles.container}>
-                {
-                    footballTeam.map((team)=>{
+                {footballTeam.map((team, indice)=>{
                         return(
-                            <FootballTeams
-                                key={team.id}
-                                title={team.name}
-                                image={team.image}
-                                numberPlayer={team.numberPlayers}
-                            />
-                        )
+                            <TouchableOpacity key ={indice} onPress={ ()=> openModalEdit(team)}>
+                                <FootballTeams
+                                    key={team.id}
+                                    title={team.name}
+                                    image={team.image}
+                                    numberPlayer={team.numberPlayers}
+                                />
+                            </TouchableOpacity>
+                        );
                     })
                 }
             </ThemedView>
@@ -61,6 +89,8 @@ export default function FootballTeamList (){
                 visible ={modalVisible}
                 onCancel={closeModal}
                 onAdd={onAdd}
+                onDelete={onDelete}
+                team ={selectTeam}
             />
         </MyScrollView>
     );

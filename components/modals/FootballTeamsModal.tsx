@@ -1,19 +1,37 @@
-import React from "react";
+import { IfootballTeams } from "@/interfaces/IfootballTeams";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { Modal, TextInput, TouchableOpacity, View, Text,StyleSheet } from "react-native";
 
 
 export type FootballModalProps = {
     visible: boolean,
-    onAdd:(title: string, image: string, numberPlayer: string)=> void
+    onAdd:(title: string, image: string, numberPlayer: string, id: number) => void;
     onCancel : () => void;
+    onDelete : (id: number) => void;
+    team?:IfootballTeams;
 }
 
-export default function FootballTeamsModal ({visible, onAdd, onCancel}: FootballModalProps) {
+export default function FootballTeamsModal ({visible, onAdd, onCancel,onDelete, team}: FootballModalProps) {
 
-    const [title, setTitle]= useState('');
-    const [image, setImage]= useState('');
-    const [numberPlayer, setNumberPlayer]= useState('');
+    const [title, setTitle] = useState('');
+    const [image, setImage] = useState('');
+    const [numberPlayer, setNumberPlayer] = useState('');
+    const [id, setId] = useState<number>(0);
+
+    useEffect(()=>{
+        if(team){
+            setTitle(team.name);
+            setImage(team.image);
+            setNumberPlayer(team.numberPlayers);
+            setId(team.id);
+        }else{
+            setTitle('');
+            setImage('');
+            setNumberPlayer('');
+            setId(0); 
+        }
+    },[team])
 
     const clearInput = () =>{
         setTitle('');
@@ -54,12 +72,12 @@ export default function FootballTeamsModal ({visible, onAdd, onCancel}: Football
                     <TouchableOpacity
                         style = {styles.buttonAdd}  
                         onPress = { () =>{
-                            onAdd(title, image,numberPlayer);
+                            onAdd(title, image,numberPlayer, id);
                             clearInput();
 
                         }}>
                         <Text style = {styles.buttonText} >
-                            Add
+                            Salvar
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
@@ -70,7 +88,16 @@ export default function FootballTeamsModal ({visible, onAdd, onCancel}: Football
                         }}>
                         
                         <Text style = {styles.buttonText} >
-                            Cancel
+                            Cancelar
+                        </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style = {styles.buttonDeletar} 
+                        onPress={() =>{onDelete(id)}}
+                        disabled ={ id <= 0}
+                    >
+                        <Text style = {styles.buttonText} >
+                            Deletar
                         </Text>
                     </TouchableOpacity>
                 </View>
@@ -113,6 +140,17 @@ const styles = StyleSheet.create({
         
     },
     buttonCancel:{
+        backgroundColor:'orange',
+        justifyContent: 'center',
+        alignContent:'center',
+        borderRadius:10,
+        flex:1,
+        margin:10,
+        padding:20,
+        height:60
+        
+    },
+    buttonDeletar:{
         backgroundColor:'red',
         justifyContent: 'center',
         alignContent:'center',
