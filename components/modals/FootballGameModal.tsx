@@ -1,19 +1,37 @@
-import React from "react";
+import { IfootballGame } from "@/interfaces/IfootballGame";
+import React, { useEffect } from "react";
 import { useState } from "react";
 import { Modal, TextInput, TouchableOpacity, View, Text,StyleSheet } from "react-native";
 
 
 export type GameModalProps = {
     visible: boolean,
-    onAdd:(time1:string, time2:string, placar: string)=> void
+    onAdd:(time1:string, time2:string, placar: string,id: number)=> void
     onCancel : () => void;
+    onDelete : (id: number) => void;
+    game?:IfootballGame;
 }
 
-export default function FootballGameModal ({visible, onAdd, onCancel}: GameModalProps) {
+export default function FootballGameModal ({visible, onAdd, onCancel,onDelete, game}: GameModalProps) {
 
     const [time1, setTime1]= useState('');
     const [time2, setTime2]= useState('');
     const [placar, setPlacar]= useState('');
+    const [id, setId] = useState<number>(0);
+    
+    useEffect(()=>{
+            if(game){
+                setTime1(game.time1);
+                setTime2(game.time2);
+                setPlacar(game.placar);
+                setId(game.id);
+            }else{
+                setTime1('');
+                setTime2('');
+                setPlacar('');
+                setId(0); 
+            }
+        },[game])
 
     const clearInput = () =>{
         setTime1('');
@@ -53,7 +71,7 @@ export default function FootballGameModal ({visible, onAdd, onCancel}: GameModal
                     <TouchableOpacity
                         style = {styles.buttonAdd}  
                         onPress = { () =>{
-                            onAdd(time1, time2, placar);
+                            onAdd(time1, time2, placar, id);
                             clearInput();
 
                         }}>
@@ -71,6 +89,15 @@ export default function FootballGameModal ({visible, onAdd, onCancel}: GameModal
                         <Text style = {styles.buttonText} >
                             Cancel
                         </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity 
+                        style = {styles.buttonDeletar} 
+                            onPress={() =>{onDelete(id)}}
+                            disabled ={ id <= 0}
+                                            >
+                            <Text style = {styles.buttonText} >
+                                Deletar
+                            </Text>
                     </TouchableOpacity>
                 </View>
             </View>
@@ -112,6 +139,17 @@ const styles = StyleSheet.create({
         
     },
     buttonCancel:{
+        backgroundColor:'orange',
+        justifyContent: 'center',
+        alignContent:'center',
+        borderRadius:10,
+        flex:1,
+        margin:10,
+        padding:20,
+        height:60
+        
+    },
+    buttonDeletar:{
         backgroundColor:'red',
         justifyContent: 'center',
         alignContent:'center',
