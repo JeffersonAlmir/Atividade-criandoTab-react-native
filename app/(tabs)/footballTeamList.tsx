@@ -3,15 +3,59 @@ import FootballTeamsModal from "@/components/modals/FootballTeamsModal";
 import MyScrollView from "@/components/MyScrollView";
 import { ThemedView } from "@/components/ThemedView";
 import { IfootballTeams } from "@/interfaces/IfootballTeams";
-import { template } from "@babel/core";
-import { useState } from "react";
-import { Text, TouchableOpacity, StyleSheet, Pressable } from "react-native";
+import { useEffect, useState } from "react";
+import { Text, TouchableOpacity, StyleSheet, Pressable, View } from "react-native";
+
+import * as Location from 'expo-location';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function FootballTeamList (){
     const [footballTeam, setFootballTeam] = useState <IfootballTeams[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
     const [selectTeam, setSelectTeam] = useState<IfootballTeams>();
     
+
+    const [location, setLocation] = useState<Location.LocationObject | null>(null);
+    const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+    useEffect(() => {
+      async function getCurrentLocation() {
+        
+        let { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          setErrorMsg('Permission to access location was denied');
+          return;
+        }
+  
+        let location = await Location.getCurrentPositionAsync({});
+        setLocation(location);
+
+         
+      }
+  
+      getCurrentLocation();
+    }, []);
+  
+    let text = 'Waiting...';
+    if (errorMsg) {
+      text = errorMsg;
+    } else if (location) {
+      text = JSON.stringify(location);
+    }
+
+
+    useEffect(() =>{
+        const getData = async () => {
+            try {
+                const data = await AsyncStorage.getItem("@FootballTeamsApp:footballTeams");
+                const footballteamsData = data != null ? JSON.parse(data) : [];
+                setFootballTeam(footballteamsData)
+            } catch (e) {
+                console.error("error",e);
+            }
+        };
+        getData();
+    },[])
     
     const onAdd = (name: string, image:string, numberPlayer:string, id?: number)=>{
 
@@ -30,14 +74,16 @@ export default function FootballTeamList (){
            ];
            
            setFootballTeam(footballTeamsPlus);
+           AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(footballTeamsPlus))
        } else{
-        footballTeam.forEach((team) =>{
-            if(team.id === id){
-                team.name = name;
-                team.image = image;
-                team.numberPlayers = numberPlayer;
-            }
-        } );
+            footballTeam.forEach((team) =>{
+                if(team.id === id){
+                    team.name = name;
+                    team.image = image;
+                    team.numberPlayers = numberPlayer;
+                }
+            } );
+            AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(footballTeam))
        }
         
         setModalVisible(false);
@@ -46,6 +92,7 @@ export default function FootballTeamList (){
     const onDelete =(id:number) =>{
         const newTeams = footballTeam.filter((team) => team.id != id);
         setFootballTeam(newTeams)
+        AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(footballTeam))
         setModalVisible(false);
     }
 
@@ -70,6 +117,10 @@ export default function FootballTeamList (){
                     <Text style={styles.headerButton}> + </Text>
                 </ThemedView>
             </TouchableOpacity>
+
+            <View style={styles.containerGps}>
+                 <Text style={styles.paragraph}>{text}</Text>
+            </View>
             <ThemedView style={styles.container}>
                 {footballTeam.map((team, indice)=>{
                         return(
@@ -128,5 +179,15 @@ const styles = StyleSheet.create({
         fontWeight:'bold',
         fontSize: 20,
         paddingHorizontal:20
-    }
+    },
+    containerGps: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+      },
+      paragraph: {
+        fontSize: 18,
+        textAlign: 'center',
+      },
 })
