@@ -1,16 +1,46 @@
 import FootballGame from "@/components/footballGame/FootballGame";
-import FootballGameModal from "@/components/modals/FootballGameModal";
 import MyScrollView from "@/components/MyScrollView";
 import { ThemedView } from "@/components/ThemedView";
 import { IfootballGame } from "@/interfaces/IfootballGame";
 import { useEffect, useState } from "react";
-import { Text, TouchableOpacity, StyleSheet, Pressable } from "react-native";
+import { Text, TouchableOpacity, StyleSheet, View } from "react-native";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from "expo-router";
+import ModalDelete from "@/components/modals/ModalDelete";
+import * as Location from 'expo-location';
 
 export default function FootballGameList (){
     const [footballGame, setFootballGame] = useState <IfootballGame[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
-    const [selectGame, setSelectGame] = useState<IfootballGame>();
+   const [selectGameId, setSelectGameId] = useState<number | null>( null);
+
+     const [location, setLocation] = useState<Location.LocationObject | null>(null);
+        const [errorMsg, setErrorMsg] = useState<string | null>(null);
+    
+        useEffect(() => {
+          async function getCurrentLocation() {
+            
+            let { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== 'granted') {
+              setErrorMsg('Permission to access location was denied');
+              return;
+            }
+      
+            let location = await Location.getCurrentPositionAsync({});
+            setLocation(location); 
+          }
+      
+          getCurrentLocation();
+        }, []);
+      
+        let text = 'Waiting...';
+        if (errorMsg) {
+          text = errorMsg;
+        } else if (location) {
+          text = JSON.stringify(location);
+        }
+
+
     useEffect(() =>{
         const getData = async () => {
             try {
@@ -25,50 +55,17 @@ export default function FootballGameList (){
     },[])
 
 
-    const onAdd = (time1: string, time2:string, placar:string, id?: number)=>{
-        if(!id || id <= 0){
-            const newFootballGame : IfootballGame = {
-                id : Math.random() * 1000,
-                time1: time1,
-                time2: time2,
-                placar: placar
-            }
-
-            const footballGamePlus : IfootballGame[] =[
-                ...footballGame,
-                newFootballGame
-            ]
-            
-
-            setFootballGame(footballGamePlus);
-            AsyncStorage.setItem("@FootballGameApp:footballGame", JSON.stringify(footballGamePlus))
-        }else{
-            footballGame.forEach((game) =>{
-                if(game.id === id){
-                    game.time1= time1;
-                    game.time2= time2;   
-                    game.placar = placar;
-                }
-            } );
-            AsyncStorage.setItem("@FootballGameApp:footballGame", JSON.stringify(footballGame))
+    const onDelete = async() =>{
+        if(selectGameId !== null){
+            const newGame = footballGame.filter((game) => game.id !== selectGameId );
+            setFootballGame(newGame)
+            await AsyncStorage.setItem("@FootballGameApp:footballGame", JSON.stringify(newGame))
         }
         setModalVisible(false);
-    };
-
-    const onDelete =(id:number) =>{
-        const newTeams = footballGame.filter((game) => game.id != id);
-        setFootballGame(newTeams)
-        AsyncStorage.setItem("@FootballGameApp:footballGame", JSON.stringify(footballGame))
-        setModalVisible(false);
     }
-
-    const openModal = ()=>{
-        setSelectGame(undefined)
-        setModalVisible(true);
-    };
-    
-    const openModalEdit = (selectTeam: IfootballGame) =>{
-        setSelectGame(selectTeam)
+  
+    const openModal = (selectGame: IfootballGame) =>{
+        setSelectGameId(selectGame.id)
         setModalVisible(true);
     }
 
@@ -76,36 +73,72 @@ export default function FootballGameList (){
         setModalVisible(false);
     };
 
+    const navigateUpdate = (selectGame :IfootballGame) =>{
+            router.push({pathname:'/screens/FormTabGame', params:{gameId: selectGame.id, gameTime1: selectGame.time2,
+                gameTime2: selectGame.time2, gamePlacar: selectGame.placar}})
+        }
+        
+    const navigateAdd = () =>{
+        router.push({pathname:'/screens/FormTabGame'})
+            
+    }
+    
+
     return(
         <MyScrollView headerBackgroundColor={{light : "#A1CEDC",dark:'#1D3D47'}}>
             <ThemedView style={styles.headerContainer}>
-                <TouchableOpacity onPress={() => openModal()}>
+                <TouchableOpacity onPress={() => navigateAdd()}>
                     <Text style={styles.headerButton}> + </Text>
                 </TouchableOpacity>
             </ThemedView>
-            <ThemedView style={styles.container}>
-                {
-                    footballGame.map((game, indice)=>{
-                        return(
-                            <TouchableOpacity key ={indice} onPress={ ()=> openModalEdit(game)}>
-                                <FootballGame
-                                    key={game.id}
-                                    time1={game.time1}
-                                    time2={game.time2}
-                                    placar={game.placar}
-                                />   
-                            </TouchableOpacity>
+            <View style={styles.containerGps}>
+                             <Text style={styles.paragraph}>{text}</Text>
+                        </View>
 
-                        )
-                    })
-                }
-            </ThemedView>
-            <FootballGameModal
+
+            {footballGame.map((game )=>{
+                return(
+
+                    <View key={game.id} style={styles.containerElements}>
+                        <View style={styles.teamContainer}>
+                            
+                            
+                            <FootballGame
+                                key={game.id}
+                                time1={game.time1}
+                                time2={game.time2}
+                                placar={game.placar}
+                            />   
+                            
+                        </View>
+                        <View  key={game.id}>
+                            <TouchableOpacity   
+                                style = {styles.buttonUpdate}
+                                onPress={ ()=> navigateUpdate(game)}
+                            >
+                                <Text style = {styles.buttonText} >
+                                    Atualizar
+                                </Text>
+                            </TouchableOpacity>
+                                
+                            <TouchableOpacity 
+                                style = {styles.buttonDelete}
+                                onPress={() =>{openModal(game)}}
+                            >
+                                <Text style = {styles.buttonText} >
+                                    Deletar
+                                </Text>
+                            </TouchableOpacity>
+                        </View>
+                            
+                    </View>
+                );
+            })
+            }
+            <ModalDelete
                 visible ={modalVisible}
                 onCancel={closeModal}
-                onAdd={onAdd}
                 onDelete={onDelete}
-                game ={selectGame}
             />
         </MyScrollView>
     );
@@ -121,6 +154,16 @@ const styles = StyleSheet.create({
     stepContainer:{
         gap:5,
         marginBottom:8,
+    },
+    containerGps: {
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        padding: 20,
+    },
+     paragraph: {
+        fontSize: 18,
+        textAlign: 'center',
     },
     reactLogo:{
         bottom:0,
@@ -143,5 +186,40 @@ const styles = StyleSheet.create({
         fontWeight:'bold',
         fontSize: 20,
         paddingHorizontal:20
-    }
+    },
+     containerElements: {
+        flex:1,
+        flexDirection: 'row',
+        alignItems: 'center', 
+        
+    },
+    teamContainer: {
+        flex: 1, 
+        padding:15,
+        
+    },
+     buttonDelete: { 
+        height:40,
+        width:100,
+        padding: 10,
+        backgroundColor: '#e74c3c',
+        borderRadius: 10,
+        margin: 5,
+        
+    },
+     buttonUpdate: { 
+        height:40,
+        width:100,
+        padding: 10,
+        backgroundColor: '#4A90E2',
+        borderRadius: 10,
+        margin: 5,
+        
+    },
+     buttonText:{
+        textAlign:'center',
+        fontWeight: 'bold',
+        color:"#FFF"
+    },
+
 })

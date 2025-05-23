@@ -64,20 +64,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={ color } />,
         }}
       />
-       <Tabs.Screen
-        name= 'formTabTeam'
-        options={{
-          title: 'Formulario Time',
-          tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={ color } />,
-        }}
-      />
-      <Tabs.Screen
-        name= 'formTabGame'
-        options={{
-          title: 'Formulario Jogo',
-          tabBarIcon: ({ color }) => <Ionicons name="list" size={24} color={ color } />,
-        }}
-      />
+       
       <Tabs.Screen
         name= 'UserList'
         options={{

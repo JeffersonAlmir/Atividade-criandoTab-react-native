@@ -1,18 +1,21 @@
 import FootballTeams from "@/components/footballTeams/FootballTeams";
-import FootballTeamsModal from "@/components/modals/FootballTeamsModal";
 import MyScrollView from "@/components/MyScrollView";
 import { ThemedView } from "@/components/ThemedView";
 import { IfootballTeams } from "@/interfaces/IfootballTeams";
 import { useEffect, useState } from "react";
-import { Text, TouchableOpacity, StyleSheet, Pressable, View } from "react-native";
+import { Text, TouchableOpacity, StyleSheet, View } from "react-native";
 
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from "expo-router";
+import ModalDelete from "@/components/modals/ModalDelete";
+
+
 
 export default function FootballTeamList (){
     const [footballTeam, setFootballTeam] = useState <IfootballTeams[]>([]);
     const [modalVisible, setModalVisible] = useState<boolean>(false);
-    const [selectTeam, setSelectTeam] = useState<IfootballTeams>();
+    const [selectTeamId, setSelectTeamId] = useState<number | null>( null);
     
 
     const [location, setLocation] = useState<Location.LocationObject | null>(null);
@@ -28,9 +31,7 @@ export default function FootballTeamList (){
         }
   
         let location = await Location.getCurrentPositionAsync({});
-        setLocation(location);
-
-         
+        setLocation(location); 
       }
   
       getCurrentLocation();
@@ -56,63 +57,41 @@ export default function FootballTeamList (){
         };
         getData();
     },[])
-    
-    const onAdd = (name: string, image:string, numberPlayer:string, id?: number)=>{
 
-       if(!id || id <= 0){
 
-           const newFootballTeam : IfootballTeams = {
-               id : Math.random() * 1000,
-               name: name,
-               image: image,
-               numberPlayers: numberPlayer
-           };
-    
-           const footballTeamsPlus : IfootballTeams[] =[
-               ...footballTeam,
-               newFootballTeam
-           ];
-           
-           setFootballTeam(footballTeamsPlus);
-           AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(footballTeamsPlus))
-       } else{
-            footballTeam.forEach((team) =>{
-                if(team.id === id){
-                    team.name = name;
-                    team.image = image;
-                    team.numberPlayers = numberPlayer;
-                }
-            } );
-            AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(footballTeam))
-       }
-        
-        setModalVisible(false);
-    };
-
-    const onDelete =(id:number) =>{
-        const newTeams = footballTeam.filter((team) => team.id != id);
-        setFootballTeam(newTeams)
-        AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(footballTeam))
+    const onDelete = async () =>{
+        if(selectTeamId !== null){
+            const newTeams = footballTeam.filter((team) => team.id !== selectTeamId );
+            setFootballTeam(newTeams)
+            await AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(newTeams))
+        }
         setModalVisible(false);
     }
 
-    const openModal = ()=>{
-        setSelectTeam(undefined)
+    const openModal = (selectedTeam :IfootballTeams)=>{
+        setSelectTeamId(selectedTeam.id)
         setModalVisible(true);
     };
-    
-    const openModalEdit = (selectTeam: IfootballTeams) =>{
-        setSelectTeam(selectTeam)
-        setModalVisible(true);
-    }
+
 
     const closeModal = ()=>{
         setModalVisible(false);
     };
 
+    
+    const navigateUpdate = (selectTeam :IfootballTeams) =>{
+        router.push({pathname:'/screens/FormTabTeam', params:{teamId: selectTeam.id, teamName:selectTeam.name,
+            teamImage:selectTeam.image, teamNumberPlayer: selectTeam.numberPlayers}})
+    }
+    
+    const navigateAdd = () =>{
+        router.push({pathname:'/screens/FormTabTeam'})
+        
+    }
+
     return(
         <MyScrollView headerBackgroundColor={{light : "#A1CEDC",dark:'#1D3D47'}}>
-            <TouchableOpacity onPress={() => openModal()}>
+            <TouchableOpacity onPress={() => navigateAdd()}>
                 <ThemedView style={styles.headerContainer}>
                     <Text style={styles.headerButton}> + </Text>
                 </ThemedView>
@@ -121,28 +100,52 @@ export default function FootballTeamList (){
             <View style={styles.containerGps}>
                  <Text style={styles.paragraph}>{text}</Text>
             </View>
-            <ThemedView style={styles.container}>
-                {footballTeam.map((team, indice)=>{
+            
+                {footballTeam.map((team)=>{
                         return(
-                            <TouchableOpacity key ={indice} onPress={ ()=> openModalEdit(team)}>
-                                <FootballTeams
-                                    key={team.id}
-                                    title={team.name}
-                                    image={team.image}
-                                    numberPlayer={team.numberPlayers}
-                                />
-                            </TouchableOpacity>
+                           
+                            <View key={team.id} style={styles.containerElements}>
+                                <View style={styles.teamContainer}>
+
+
+                                        <FootballTeams
+                                            key={team.id}
+                                            title={team.name}
+                                            image={team.image}
+                                            numberPlayer={team.numberPlayers}
+                                        />
+
+                                </View>
+                                <View >
+                                    <TouchableOpacity 
+                                        style = {styles.buttonUpdate}
+                                        onPress={ ()=> navigateUpdate(team)}>
+                                       <Text style = {styles.buttonText} >
+                                            Atualizar
+                                        </Text>
+                                    </TouchableOpacity>
+
+                                    <TouchableOpacity 
+                                        style = {styles.buttonDelete}
+                                        onPress={() =>{openModal(team)}}>
+                                        <Text style = {styles.buttonText} >
+                                            Deletar
+                                        </Text>
+                                    </TouchableOpacity>
+                                </View>
+
+                            </View>
+                            
+                            
                         );
                     })
                 }
-            </ThemedView>
-            <FootballTeamsModal
+            <ModalDelete
                 visible ={modalVisible}
                 onCancel={closeModal}
-                onAdd={onAdd}
                 onDelete={onDelete}
-                team ={selectTeam}
             />
+
         </MyScrollView>
     );
 
@@ -157,15 +160,6 @@ const styles = StyleSheet.create({
     stepContainer:{
         gap:5,
         marginBottom:8,
-    },
-    reactLogo:{
-        bottom:0,
-        left:0
-    },
-    container:{
-        flex:1,
-        backgroundColor:'gray',
-        
     },
     headerContainer:{
         backgroundColor:'white',
@@ -185,9 +179,44 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         justifyContent: 'center',
         padding: 20,
-      },
-      paragraph: {
+    },
+    paragraph: {
         fontSize: 18,
         textAlign: 'center',
-      },
-})
+    },
+    containerElements: {
+        flex:1,
+        flexDirection: 'row',
+        alignItems: 'center', 
+        
+    },
+    teamContainer: {
+        flex: 1, 
+        padding:5,
+        
+    },
+    buttonDelete: { 
+        height:40,
+        width:100,
+        padding: 10,
+        backgroundColor: '#e74c3c',
+        borderRadius: 10,
+        margin: 5,
+        
+    },
+     buttonUpdate: { 
+        height:40,
+        width:100,
+        padding: 10,
+        backgroundColor: '#4A90E2',
+        borderRadius: 10,
+        margin: 5,
+        
+    },
+     buttonText:{
+        textAlign:'center',
+        fontWeight: 'bold',
+        color:"#FFF"
+    },
+       
+}) 

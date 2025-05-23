@@ -1,42 +1,79 @@
 import { IfootballTeams } from "@/interfaces/IfootballTeams";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Modal, TextInput, TouchableOpacity, View, Text,StyleSheet } from "react-native";
+import { TextInput, TouchableOpacity, View, Text,StyleSheet } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
-
-export type FootballModalProps = {
-    visible: boolean,
-    onAdd:(title: string, image: string, numberPlayer: string, id: number) => void;
-    onCancel : () => void;
-    team?:IfootballTeams;
-}
-
-export default function FootballTeamsModal ({visible, onAdd, onCancel, team}: FootballModalProps) {
-
+export default function FormTabTeam () {
+    const {teamId, teamName, teamImage, teamNumberPlayer } = useLocalSearchParams()
+   
     const [title, setTitle] = useState('');
     const [image, setImage] = useState('');
     const [numberPlayer, setNumberPlayer] = useState('');
     const [id, setId] = useState<number>(0);
 
-    useEffect(()=>{
-        if(team){
-            setTitle(team.name);
-            setImage(team.image);
-            setNumberPlayer(team.numberPlayers);
-            setId(team.id);
+    useEffect( ()=>{
+        if(teamId){
+            setTitle(teamName?.toString() );
+            setImage(teamImage?.toString() );
+            setNumberPlayer(teamNumberPlayer?.toString());
+            setId(Number(teamId));
         }else{
             setTitle('');
             setImage('');
             setNumberPlayer('');
             setId(0); 
         }
-    },[team])
+    }, [teamId,teamName,teamImage,teamNumberPlayer])
 
+
+    const onAdd = async (name: string, image:string, numberPlayer:string, id?: number)=>{
+
+        const data = await AsyncStorage.getItem("@FootballTeamsApp:footballTeams");
+        const footballteamsData = data != null ? JSON.parse(data) : [];
+
+       if(!id || id <= 0){
+
+           const newFootballTeam : IfootballTeams = {
+               id : Math.random() * 1000,
+               name: name,
+               image: image,
+               numberPlayers: numberPlayer
+           };
+    
+           const footballTeamsPlus : IfootballTeams[] =[
+               ...footballteamsData,
+               newFootballTeam
+           ];
+           
+           AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(footballTeamsPlus))
+       } else{
+            footballteamsData.forEach((team :IfootballTeams) =>{
+                if(team.id === id){
+                    team.name = name;
+                    team.image = image;
+                    team.numberPlayers = numberPlayer;
+                }
+            } );
+            AsyncStorage.setItem("@FootballTeamsApp:footballTeams", JSON.stringify(footballteamsData))
+       }
+        clearInput();
+        router.replace('/(tabs)/footballTeamList')
+        
+    };
+     
+  
     const clearInput = () =>{
         setTitle('');
         setImage('');
         setNumberPlayer('');
+    }
+
+    const handleCancel = () => {
+        clearInput();
+        router.replace('/(tabs)/footballTeamList')
     }
 
     return(
@@ -48,21 +85,21 @@ export default function FootballTeamsModal ({visible, onAdd, onCancel, team}: Fo
                     <TextInput
                         style = {styles.boxInput}
                         value = {title}
-                        onChangeText={ text => setTitle(text)}
+                        onChangeText={setTitle}
                         placeholder="Nome"
                         autoFocus
                     />
                     <TextInput
                         style = {styles.boxInput}
                         value = {image}
-                        onChangeText={ text => setImage(text)}
+                        onChangeText={ setImage}
                         placeholder="Imagem"
                                         
                     />
                     <TextInput
                         style = {styles.boxInput}
                         value = {numberPlayer}
-                        onChangeText={ num => setNumberPlayer(num)}
+                        onChangeText={setNumberPlayer}
                         keyboardType="numeric"
                         placeholder="Número de jogadores"  
                     />
@@ -73,8 +110,9 @@ export default function FootballTeamsModal ({visible, onAdd, onCancel, team}: Fo
                     <TouchableOpacity
                         style = {styles.buttonAdd}  
                         onPress = { () =>{
-                            onAdd(title, image,numberPlayer, id);
-                            clearInput();
+                            onAdd(title, image,numberPlayer, id)
+                            
+
             
                     }}>
                         <Text style = {styles.buttonText} >
@@ -84,8 +122,7 @@ export default function FootballTeamsModal ({visible, onAdd, onCancel, team}: Fo
                     <TouchableOpacity 
                         style = {styles.buttonCancel} 
                         onPress={() =>{
-                        onCancel()
-                        clearInput();
+                        handleCancel() 
                     }}>
                                     
                         <Text style = {styles.buttonText} >

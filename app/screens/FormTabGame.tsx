@@ -1,117 +1,141 @@
 import { IfootballGame } from "@/interfaces/IfootballGame";
-import { useLocalSearchParams } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect } from "react";
 import { useState } from "react";
-import { Modal, TextInput, TouchableOpacity, View, Text,StyleSheet } from "react-native";
+import { TextInput, TouchableOpacity, View, Text,StyleSheet } from "react-native";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 
-export type GameModalProps = {
-    visible: boolean,
-    onAdd:(time1:string, time2:string, placar: string,id: number)=> void
-    onCancel : () => void;
-    onDelete : (id: number) => void;
-    game?:IfootballGame;
-}
-
-export default function FootballGameModal ({visible, onAdd, onCancel,onDelete, game}: GameModalProps) {
-
+export default function FormTabGame () {
+    const {gameId, gameTime1, gameTime2, gamePlacar } = useLocalSearchParams()
 
     const [time1, setTime1]= useState('');
     const [time2, setTime2]= useState('');
     const [placar, setPlacar]= useState('');
     const [id, setId] = useState<number>(0);
-    
-    useEffect(()=>{
-            if(game){
-                setTime1(game.time1);
-                setTime2(game.time2);
-                setPlacar(game.placar);
-                setId(game.id);
+
+    useEffect( ()=>{
+            if(gameId){
+                setTime1(gameTime1?.toString() );
+                setTime2(gameTime2?.toString() );
+                setPlacar(gamePlacar?.toString());
+                setId(Number(gameId));
             }else{
                 setTime1('');
                 setTime2('');
                 setPlacar('');
                 setId(0); 
             }
-        },[game])
+    }, [gameId,gameTime1,gameTime2,gamePlacar])
 
-    const clearInput = () =>{
+    
+    const onAdd = async (time1: string, time2:string, placar:string, id?: number)=>{
+
+        const data = await AsyncStorage.getItem("@FootballGameApp:footballGame");
+        const footballGameData = data != null ? JSON.parse(data) : [];
+
+        if(!id || id <= 0){
+            const newFootballGame : IfootballGame = {
+                id : Math.random() * 1000,
+                time1: time1,
+                time2: time2,
+                placar: placar
+            }
+
+            const footballGamePlus : IfootballGame[] =[
+                newFootballGame,
+                ...footballGameData ,
+            ]
+
+            AsyncStorage.setItem("@FootballGameApp:footballGame", JSON.stringify(footballGamePlus));
+        }else{
+            footballGameData.forEach((game : IfootballGame) =>{
+                if(game.id === id){
+                    game.time1= time1;
+                    game.time2= time2;   
+                    game.placar = placar;
+                }
+            } );
+            AsyncStorage.setItem("@FootballGameApp:footballGame", JSON.stringify(footballGameData));
+        }
+        clearInput();
+        router.replace('/(tabs)/footballGameList');
+       
+    };
+
+    const clearInput = () => {
         setTime1('');
         setTime2('');
         setPlacar('');
     }
 
+    const handleCancel = () => {
+        clearInput();
+        router.replace('/(tabs)/footballGameList')
+    }
+
     return(
-        <Modal visible = {visible} animationType="fade" transparent={true} >
-            <View style = {styles.container} >
+
+        <SafeAreaProvider>
+            <SafeAreaView style = {styles.container}>
                 <View style = {styles.boxContainer}>
-                    
+                                   
                     <TextInput
                         style = {styles.boxInput}
                         value = {time1}
-                        onChangeText={ text => setTime1(text)}
-                        placeholder="Nome time 1"
+                        onChangeText={ setTime1}
+                        placeholder="Nome primeiro time"
                         autoFocus
                     />
                     <TextInput
                         style = {styles.boxInput}
                         value = {time2}
-                        onChangeText={ text => setTime2(text)}
-                        placeholder="Nome time 2"
-                        
+                        onChangeText={(text)=>setTime2(text)}
+                        placeholder="Nome segundo time"
+                                       
                     />
                     <TextInput
                         style = {styles.boxInput}
                         value = {placar}
-                        onChangeText={ text=> setPlacar(text)}
+                        onChangeText={ setPlacar}
                         placeholder="Placar"  
                     />
-                    
+                                   
                 </View>
-
+            
                 <View style = {styles.buttonContainer}>
                     <TouchableOpacity
                         style = {styles.buttonAdd}  
                         onPress = { () =>{
                             onAdd(time1, time2, placar, id);
-                            clearInput();
-
+               
                         }}>
                         <Text style = {styles.buttonText} >
-                            Add
+                            Salvar
                         </Text>
                     </TouchableOpacity>
                     <TouchableOpacity 
                         style = {styles.buttonCancel} 
                         onPress={() =>{
-                            onCancel()
-                            clearInput();
-                        }}>
-                        
+                        handleCancel()
+                    }}>
+                                       
                         <Text style = {styles.buttonText} >
-                            Cancel
+                            Cancelar
                         </Text>
                     </TouchableOpacity>
-                    <TouchableOpacity 
-                        style = {styles.buttonDeletar} 
-                            onPress={() =>{onDelete(id)}}
-                            disabled ={ id <= 0}
-                                            >
-                            <Text style = {styles.buttonText} >
-                                Deletar
-                            </Text>
-                    </TouchableOpacity>
                 </View>
-            </View>
-
-        </Modal>
+            </SafeAreaView>
+      </SafeAreaProvider>
+       
     );
 };
 
 const styles = StyleSheet.create({
 
     container:{
-        backgroundColor:'rgba(0, 0, 0, 0.7)',
+        backgroundColor:'#FFF',
         alignContent:'center',
         justifyContent: 'center',
         flex: 1
@@ -121,7 +145,8 @@ const styles = StyleSheet.create({
         alignContent:'center',
         justifyContent: 'center',
         borderRadius:10,
-        margin:20
+        margin:20,
+        
     },
     buttonText:{
         textAlign:'center',
@@ -141,17 +166,6 @@ const styles = StyleSheet.create({
         
     },
     buttonCancel:{
-        backgroundColor:'orange',
-        justifyContent: 'center',
-        alignContent:'center',
-        borderRadius:10,
-        flex:1,
-        margin:10,
-        padding:20,
-        height:60
-        
-    },
-    buttonDeletar:{
         backgroundColor:'red',
         justifyContent: 'center',
         alignContent:'center',
@@ -172,5 +186,8 @@ const styles = StyleSheet.create({
         height:40,
         borderRadius:5,
         margin:5,
+        borderWidth: 1,  
+        padding: 10, 
+        
     }
 })
